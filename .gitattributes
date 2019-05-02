@@ -5,5 +5,4 @@
 *.xml linguist-detectable=false
 *.css linguist-detecable=false
 *.h linguist-detecable=false
-*.m linguist-detecable=false
-
+*.m linguist-language=Rust
