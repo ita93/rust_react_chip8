@@ -1,0 +1,3 @@
+rootProject.name = 'rust_react_chip8'
+
+include ':app'
