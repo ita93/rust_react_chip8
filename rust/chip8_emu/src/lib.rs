@@ -1,4 +1,5 @@
 mod font;
+mod keyboard;
 mod display;
 #[cfg(test)]
 mod tests {
