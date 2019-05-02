@@ -1,3 +1,4 @@
+mod font;
 #[cfg(test)]
 mod tests {
     #[test]
