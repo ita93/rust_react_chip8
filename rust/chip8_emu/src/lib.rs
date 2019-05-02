@@ -1,6 +1,7 @@
 mod font;
 mod keyboard;
 mod display;
+mod cpu;
 #[cfg(test)]
 mod tests {
     #[test]
