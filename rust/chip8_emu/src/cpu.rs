@@ -82,8 +82,8 @@ impl CPU{
         */
         let op = ((opcode & 0xF000)>>12) as u8;
         let n = (opcode & 0x000F) as u8;
-        let x = ((opcode & 0x0F00) >> 8) as u8;
-        let y = ((opcode & 0x00F0) >> 4) as u8;
+        let x = ((opcode & 0x0F00) >> 8) as usize;
+        let y = ((opcode & 0x00F0) >> 4) as usize;
         let kk = ((opcode & 0x00FF)) as u8;
         let nnn = ((opcode) & 0x0FFF);
         match (op, x, y, n){
@@ -107,69 +107,69 @@ impl CPU{
             },
             //SE Vx, byte
             (3, _, _, _) => {
-                self.pc += if self.registers[x as usize] == kk {2} else {0};
+                self.pc += if self.registers[x] == kk {2} else {0};
             },
             //SNE Vx, byte
             (4, _, _, _) => {
-                self.pc += if self.registers[x as usize] != kk {2} else {0};
+                self.pc += if self.registers[x] != kk {2} else {0};
             },
             //SE Vx, Vy
             (5, _, _, _) => {
-                self.pc += if self.registers[x as usize] == self.registers[y as usize] {2} else {0};
+                self.pc += if self.registers[x] == self.registers[y] {2} else {0};
             }
             //LD Vx, byte
             (6, _, _, _) => {
-                self.registers[x as usize] = kk;
+                self.registers[x] = kk;
             }
             //ADD Vx, byte
             (7, _, _, _) => {
-                self.registers[x as usize] += kk;
+                self.registers[x] += kk;
             },
             //LD Vx, Vy
             (8, _, _, 0) => {
-                self.registers[x as usize] = self.registers[y as usize];
+                self.registers[x] = self.registers[y];
             },
             //OR Vx, Vy
             (8, _, _, 1) => {
-                self.registers[x as usize] |= self.registers[y as usize];
+                self.registers[x] |= self.registers[y];
             },
             // AND Vx, Vy
             (8, _, _, 2) => {
-                self.registers[x as usize] &= self.registers[y as usize];
+                self.registers[x] &= self.registers[y];
             },
             //XOR Vx, Vy
             (8, _, _, 3) => {
-                self.registers[x as usize] ^= self.registers[y as usize];
+                self.registers[x] ^= self.registers[y];
             },
             //ADD Vx, Vy
             (8, _, _, 4) => {
-                let sum:u16 = self.registers[x as usize] as u16 + self.registers[y as usize] as u16;
-                self.registers[x as usize] = (sum & 0x00FF) as u8;
+                let sum:u16 = self.registers[x] as u16 + self.registers[y] as u16;
+                self.registers[x] = (sum & 0x00FF) as u8;
                 self.registers[0xF] = if sum > 255 {1} else {0};
             },
             //SUB Vx, Vy
             (8, _, _, 5) => {
-                let r1 = self.registers[x as usize];
-                let r2 = self.registers[y as usize];
+                let r1 = self.registers[x];
+                let r2 = self.registers[y];
                 self.registers[0xF] = if r1 > r2 {1} else {0};
                 let sub_res = r1 as u16 - r2 as u16;
-                self.registers[x as usize] = (sub_res & 0x00FF) as u8;
+                self.registers[x] = (sub_res & 0x00FF) as u8;
             },
             //SHR Vx {, Vy}
             (8, _, _, 6) => {
-                self.registers[0xF] = self.registers[x as usize] & 0x01;
-                self.registers[x as usize] = self.registers[x as usize] >> 1;
+                self.registers[0xF] = self.registers[x] & 0x01;
+                self.registers[x] = self.registers[x] >> 1;
             },
             //SUBN Vx, Vy
             (8, _, _, 7) => {
-                let res = self.registers[y as usize] as i8 - self.registers[x as usize] as i8;
-                self.registers[x as usize] = res as u8;
+                let res = self.registers[y] as i8 - self.registers[x] as i8;
+                self.registers[x] = res as u8;
                 self.registers[0xF] = if res < 0 { 1 } else { 0 };
             },
             //SHL Vx {, Vy}
             (8, _, _, 0xE) => {
-                self.registers[0xF] = self.registers[x as usize] & 0x10;
-                self.registers[x as usize] = self.registers[x as usize] << 1;
+                self.registers[0xF] = self.registers[x] & 0x10;
+                self.registers[x] = self.registers[x] << 1;
             },
             _ => {
                 //igonre it
