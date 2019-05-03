@@ -7,7 +7,7 @@ pub struct Display{
 }
 
 impl Display {
-    fn new() -> Self{
+    pub fn new() -> Self{
         Self{
             memory: [false; HEIGH_SIZE * WIDTH_SIZE],
         }

@@ -35,7 +35,7 @@ pub struct Keyboard{
 }
 
 impl Keyboard{
-    pub new()-> Self{
+    pub fn new()-> Self{
         Self{
             keys: [false; 16],
         }
