@@ -1,3 +1,4 @@
+extern crate rand;
 mod font;
 mod keyboard;
 mod display;

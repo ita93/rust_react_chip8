@@ -2,6 +2,5 @@
 name = "chip8_emu"
 version = "0.1.0"
 authors = ["Nguyen Dinh Phi <phind.uet@gmail.com>"]
-
 [dependencies]
-rand = "0.6.5"
+rand = "0.6"
