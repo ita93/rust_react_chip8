@@ -93,7 +93,7 @@ impl CPU{
             //RET
             (0, 0, 0xE, 0xE) => {
                 self.sp -= 1;
-                self.pc = self.stacks[self.sp];
+                self.pc = self.stacks[self.sp as usize];
             },
             //JP addr
             (1, _, _, _) => {
@@ -102,27 +102,75 @@ impl CPU{
             //CALL addr
             (2, _, _, _) => {
                 self.sp += 1;
-                self.stacks[self.sp - 1] = self.pc;
+                self.stacks[self.sp as usize - 1] = self.pc;
                 self.pc = nnn;
             },
             //SE Vx, byte
             (3, _, _, _) => {
-                if self.registers[x] == kk {
-                    self.pc += 2;
-                }
+                self.pc += if self.registers[x as usize] == kk {2} else {0};
             },
             //SNE Vx, byte
             (4, _, _, _) => {
-                if self.registers[x] != kk {
-                    self.pc += 2;
-                }
+                self.pc += if self.registers[x as usize] != kk {2} else {0};
             },
             //SE Vx, Vy
             (5, _, _, _) => {
-                if self.registers[x] != self.registers[y] {
-                    self.pc += 2;
-                }
+                self.pc += if self.registers[x as usize] == self.registers[y as usize] {2} else {0};
             }
+            //LD Vx, byte
+            (6, _, _, _) => {
+                self.registers[x as usize] = kk;
+            }
+            //ADD Vx, byte
+            (7, _, _, _) => {
+                self.registers[x as usize] += kk;
+            },
+            //LD Vx, Vy
+            (8, _, _, 0) => {
+                self.registers[x as usize] = self.registers[y as usize];
+            },
+            //OR Vx, Vy
+            (8, _, _, 1) => {
+                self.registers[x as usize] |= self.registers[y as usize];
+            },
+            // AND Vx, Vy
+            (8, _, _, 2) => {
+                self.registers[x as usize] &= self.registers[y as usize];
+            },
+            //XOR Vx, Vy
+            (8, _, _, 3) => {
+                self.registers[x as usize] ^= self.registers[y as usize];
+            },
+            //ADD Vx, Vy
+            (8, _, _, 4) => {
+                let sum:u16 = self.registers[x as usize] as u16 + self.registers[y as usize] as u16;
+                self.registers[x as usize] = (sum & 0x00FF) as u8;
+                self.registers[0xF] = if sum > 255 {1} else {0};
+            },
+            //SUB Vx, Vy
+            (8, _, _, 5) => {
+                let r1 = self.registers[x as usize];
+                let r2 = self.registers[y as usize];
+                self.registers[0xF] = if r1 > r2 {1} else {0};
+                let sub_res = r1 as u16 - r2 as u16;
+                self.registers[x as usize] = (sub_res & 0x00FF) as u8;
+            },
+            //SHR Vx {, Vy}
+            (8, _, _, 6) => {
+                self.registers[0xF] = self.registers[x as usize] & 0x01;
+                self.registers[x as usize] = self.registers[x as usize] >> 1;
+            },
+            //SUBN Vx, Vy
+            (8, _, _, 7) => {
+                let res = self.registers[y as usize] as i8 - self.registers[x as usize] as i8;
+                self.registers[x as usize] = res as u8;
+                self.registers[0xF] = if res < 0 { 1 } else { 0 };
+            },
+            //SHL Vx {, Vy}
+            (8, _, _, 0xE) => {
+                self.registers[0xF] = self.registers[x as usize] & 0x10;
+                self.registers[x as usize] = self.registers[x as usize] << 1;
+            },
             _ => {
                 //igonre it
             }
