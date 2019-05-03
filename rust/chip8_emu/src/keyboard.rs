@@ -35,6 +35,11 @@ pub struct Keyboard{
 }
 
 impl Keyboard{
+    pub new()-> Self{
+        Self{
+            keys: [false; 16],
+        }
+    }
     pub fn press_down(&mut self, i: usize){
         self.keys[i] = true;
     }
