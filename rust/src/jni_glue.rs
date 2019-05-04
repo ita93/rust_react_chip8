@@ -34,7 +34,7 @@ pub unsafe extern fn Java_com_rust_1react_1chip8_MobileAppBridge_hello(env: JNIE
     let recipient = CString::from(
         CStr::from_ptr(env.get_string(j_recipient).unwrap().as_ptr())
     );
-    let output = env.new_string("I love you ".to_owned() + recipient.to_str().unwrap()).unwrap();
+    let output = env.new_string("You just press key ".to_owned() + recipient.to_str().unwrap()).unwrap();
     output.into_inner()
 }
 
