@@ -6,6 +6,7 @@ authors = ["Nguyen Dinh Phi <phind.uet@gmail.com>"]
 [dependencies]
 rand = "0.6"
 jni = { version = "0.10.2", default-features = false }
+android_glue = "0.2.3"
 
 [profile.release]
 lto = true

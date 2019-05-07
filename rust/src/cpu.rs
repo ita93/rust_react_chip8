@@ -16,6 +16,9 @@ use rand::Rng;
 use keyboard::Keyboard;
 use display::Display;
 use font::FONT_SET;
+use std::io;
+
+use android_glue::{load_asset, write_log};
 
 const MEMORY_SIZE: usize = 4096;
 const NO_REGISTERS: usize = 16;
@@ -34,7 +37,7 @@ pub struct CPU{
 }
 
 impl CPU{
-    pub fn new() -> Self{
+    /*pub fn new() -> Self{
         CPU{
             memory: [0; MEMORY_SIZE],
             registers: [0; NO_REGISTERS],
@@ -46,7 +49,7 @@ impl CPU{
             sp: 0, //stack pointer
             delay_timer: 0,
         }
-    }
+    }*/
 
     pub fn reset(&mut self){
         self.memory = [0; MEMORY_SIZE];
@@ -57,6 +60,24 @@ impl CPU{
         self.stacks = [0; 16];
         self.sp = 0;
         self.delay_timer = 0;
+        self.memory[0..80].clone_from_slice(&FONT_SET);
+    }
+
+    pub fn load_rom(&mut self, rom_path: &str) -> std::io::Result<()>{
+        /*match load_asset(rom_path) {
+            Ok(result) => {
+                for i in 0..result.len() {
+                    if i < 4096 {
+                        self.memory[i+512] = result[i];
+                    }
+                }
+                Ok(())
+            },
+            _ => {
+                Err(io::Error::new(io::ErrorKind::InvalidInput, "Checksum is incorrect"))
+            }
+        }*/
+        Ok(())
     }
 
     //Fetch instruction phase
