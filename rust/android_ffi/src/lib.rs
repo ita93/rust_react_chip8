@@ -74,9 +74,9 @@ pub unsafe extern fn cargo_apk_injected_glue_write_log(ptr: *const (), len: usiz
 }
 
 #[no_mangle]
-pub unsafe extern fn cargo_apk_injected_glue_load_asset(ptr: *const (), len: usize) -> *mut c_void {
+pub unsafe extern fn cargo_apk_injected_glue_load_asset(app_asset_manager:*mut ffi::AAssetManager, ptr: *const (), len: usize) -> *mut c_void {
     let filename: &str = mem::transmute((ptr, len));
-    let data = load_asset(filename);
+    let data = load_asset(filename, app_asset_manager);
     Box::into_raw(Box::new(data)) as *mut _
 }
 
@@ -598,7 +598,7 @@ pub enum AssetError {
     EmptyBuffer,
 }
 
-pub fn load_asset(filename: &str) -> Result<Vec<u8>, AssetError> {
+pub fn load_asset(filename: &str, app_asset_manager:*mut ffi::AAssetManager) -> Result<Vec<u8>, AssetError> {
     struct AssetCloser {
         asset: *mut ffi::Asset,
     }
@@ -611,17 +611,11 @@ pub fn load_asset(filename: &str) -> Result<Vec<u8>, AssetError> {
         }
     }
 
-    unsafe fn get_asset_manager() -> *mut ffi::AAssetManager {
-        let app = &*ANDROID_APP;
-        let activity = &*app.activity;
-        activity.assetManager
-    }
-
     let filename_c_str = CString::new(filename).unwrap();
     let filename_c_str = filename_c_str.as_ptr();
     let asset = unsafe {
         ffi::AAssetManager_open(
-            get_asset_manager(), filename_c_str, ffi::MODE_STREAMING)
+            app_asset_manager, filename_c_str, ffi::MODE_STREAMING)
     };
     if asset.is_null() {
         return Err(AssetError::AssetMissing);
