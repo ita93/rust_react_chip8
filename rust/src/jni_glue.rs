@@ -17,7 +17,10 @@ use std::os::raw::c_short;
 use std::os::raw::c_ushort;
 use std::os::raw::c_longlong;
 
-extern { pub fn __android_log_write(prio: c_int, tag: *const c_char, text: *const c_char) -> c_int; }
+extern { 
+    pub fn __android_log_write(prio: c_int, tag: *const c_char, text: *const c_char) -> c_int; 
+    
+}
 
 pub fn write_log(message: &str) {
     let message = CString::new(message).unwrap();

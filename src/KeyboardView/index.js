@@ -19,9 +19,15 @@ export default class KeyboardView extends Component {
 
     //This will call the bound function from its parent component 
     //to handle button press action/event 
-    _handleOnPress = (value) => {
+    _handleOnPressDown = (value) => {
         requestAnimationFrame(() => {
-            this.props.onBtnPress(value);
+            this.props.onBtnPressDown(value);
+        });
+    }
+
+    _handleOnPressUp = (value) => {
+        requestAnimationFrame(() => {
+            this.props.onBtnPressUp(value);
         });
     }
 
@@ -35,7 +41,8 @@ export default class KeyboardView extends Component {
                                 row.map((col,index) => (
                                     <TouchableNativeFeedback
                                         key={index}
-                                        onPress={() => this._handleOnPress(col)}
+                                        onPressIn={() => this._handleOnPressDown(col)}
+                                        onPressOut={() => this._handleOnPressUp(col)}
                                         background={TouchableNativeFeedback.SelectableBackground()}>
                                         <View style={styles.contButton}>
                                             <Text style={styles.txtDefault}>{col}</Text>

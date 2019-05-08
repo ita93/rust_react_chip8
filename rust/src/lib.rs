@@ -1,36 +1,28 @@
 #![cfg(target_os="android")]
 #![allow(non_snake_case)]
 use std::ffi::{CString, CStr};
-use jni::JNIEnv;
 use jni::objects::{JObject, JString};
-use jni::sys::{jstring, jboolean};
+use android_ffi::ffi::{jobject, jstring, jboolean, JNIEnv};
+use std::os::raw::{c_void, c_char};
 
-extern crate android_glue;
 extern crate rand;
 extern crate jni;
 mod font;
 mod keyboard;
 mod display;
 mod cpu;
-mod jni_glue;
+//mod jni_glue;
 
-use jni_glue::write_log;
-
-#[no_mangle]
-pub unsafe extern fn Java_com_rust_1react_1chip8_MobileAppBridge_hello(env: JNIEnv, _ : JObject, j_recipient: JString) -> jstring {
-    let recipient = CString::from(
-        CStr::from_ptr(env.get_string(j_recipient).unwrap().as_ptr())
-    );
-    let output = env.new_string(recipient.to_str().unwrap()).unwrap();
-    write_log("I AM HERE");
-    output.into_inner()
-}
+//use jni_glue::write_log;
+extern crate android_ffi;
+use android_ffi::{write_log, load_asset};
+use android_ffi::ffi::{AAssetManager_fromJava, AAssetManager, JNINativeInterface};
 
 use cpu::CPU;
 use display::Display;
 use keyboard::Keyboard;
 
-//cannot call function here
+//FIX_ME: cannot call function here
 static mut Cpu: CPU = CPU{
             memory: [0; 4096],
             registers: [0; 16],
@@ -47,34 +39,59 @@ static mut Cpu: CPU = CPU{
             delay_timer: 0,
         };
 
+
+unsafe fn jstring_to_str<'a>(env: *mut JNIEnv, j_recipient: jstring) -> &'a str{
+    let input = ((*(*env).functions).GetStringUTFChars)(env, j_recipient, std::ptr::null_mut());
+    CStr::from_ptr(input).to_str().unwrap_or("0")
+}
+
+#[no_mangle]
+pub unsafe extern fn Java_com_rust_1react_1chip8_MobileAppBridge_hello(env: *mut JNIEnv, _: jobject, j_recipient: jstring) -> jstring {
+    let converted_string = jstring_to_str(env, j_recipient);
+    write_log(&format!("The input value: {}", converted_string));
+    j_recipient
+}
+
 //com.react_rust.MobileAppBridge
 //com.rust_react_chip8.MobileAppBridge
 #[no_mangle]
-pub unsafe extern fn Java_com_rust_1react_1chip8_MobileAppBridge_loadROM(env: JNIEnv, _ : JObject, j_recipient: JString) -> jboolean {
-    let recipient = CString::from(
-        CStr::from_ptr(env.get_string(j_recipient).unwrap().as_ptr())
-    );
-    match Cpu.load_rom(recipient.to_str().unwrap_or("none")){
-        Ok(_) => 1,
-        _ => 0
+pub unsafe extern fn Java_com_rust_1react_1chip8_MobileAppBridge_loadROM(env: *mut JNIEnv, _: jobject, asset_manager : jobject, file_name: jstring) -> jboolean {
+    if file_name.is_null() {
+        return 0;
+    }
+    //get ROM name
+    let rom_name = jstring_to_str(env, file_name);
+    //Load ROM to memory
+    let res = AAssetManager_fromJava(env, asset_manager);
+    if res.is_null() {
+        return 0;
+    } else {
+        return match load_asset(rom_name, res) {
+            Ok(value) => {
+                Cpu.load_rom(value);
+                1
+            },
+            _ => {
+                0
+            },
+        }
     }
 }
 
-/*
 #[no_mangle]
-pub fn Java_com_rust_1react_1chip8_MobileAppBridge_pressDown(env: JNIEnv, _ : JObject, j_recipient: JString) {
-    unsafe {
-        Cpu.keyboard.press_down(i as usize);
+pub unsafe extern fn Java_com_rust_1react_1chip8_MobileAppBridge_pressButton(env: *mut JNIEnv, _ : JObject, j_key: jstring, j_value: jboolean) {
+    let converted_string = jstring_to_str(env, j_key);
+    let key_idx = usize::from_str_radix(converted_string, 16).unwrap_or(0);
+    
+    if j_value == 1 {
+        Cpu.keyboard.press_down(key_idx);
+    }else{
+        Cpu.keyboard.press_up(key_idx);
     }
+
+    write_log(&format!("Key: {} and value: {}", key_idx, Cpu.keyboard.keys[key_idx]));
 }
 
-#[no_mangle]
-pub fn Java_com_rust_1react_1chip8_MobileAppBridge_pressUp(env: JNIEnv, _ : JObject, j_recipient: JString) {
-    unsafe {
-        Cpu.keyboard.press_up(i as usize);
-    }
-}
-*/
 #[no_mangle]
 pub fn reset() {
     unsafe {

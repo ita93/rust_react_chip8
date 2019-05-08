@@ -17,8 +17,7 @@ use keyboard::Keyboard;
 use display::Display;
 use font::FONT_SET;
 use std::io;
-
-use android_glue::{load_asset, write_log};
+use android_ffi::write_log;
 
 const MEMORY_SIZE: usize = 4096;
 const NO_REGISTERS: usize = 16;
@@ -63,21 +62,13 @@ impl CPU{
         self.memory[0..80].clone_from_slice(&FONT_SET);
     }
 
-    pub fn load_rom(&mut self, rom_path: &str) -> std::io::Result<()>{
-        /*match load_asset(rom_path) {
-            Ok(result) => {
-                for i in 0..result.len() {
-                    if i < 4096 {
-                        self.memory[i+512] = result[i];
-                    }
-                }
-                Ok(())
-            },
-            _ => {
-                Err(io::Error::new(io::ErrorKind::InvalidInput, "Checksum is incorrect"))
+    pub fn load_rom(&mut self, input : Vec<u8>){
+        for i in 0..input.len() {
+            if i < 3584 {
+                self.memory[i+512] = input[i];
             }
-        }*/
-        Ok(())
+        }
+        write_log(&format!("MEM: {:#x} {:#x} {:#x} {:#x} ", self.memory[512], self.memory[513], self.memory[514], self.memory[515]));
     }
 
     //Fetch instruction phase

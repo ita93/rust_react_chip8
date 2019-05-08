@@ -8,10 +8,39 @@
 
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View} from 'react-native';
-import styles from './styles'
+import styles from './styles';
+import {MobileAppBridge} from 'NativeModules';
 
-import KeyboarView from "./KeyboardView"
 import KeyboardView from './KeyboardView';
+import { classPrivateMethod } from '@babel/types';
+
+async function displayHelloWorld(self, value){
+  try{
+    let text = await MobileAppBridge.sayHelloWorld(value);
+    self.setState({
+      _keyPress : text,
+    });
+  }catch(e){
+    console.log(e);
+  }
+}
+
+async function loadROM(self, value){
+  try{
+    let text = await MobileAppBridge.rnLoadROM(value);
+    console.log(value);
+  }catch(e) {
+    console.log(e);
+  }
+}
+
+async function pressBtn(self, key, value){
+  try {
+    let res = MobileAppBridge.rnPressBtn(key, value);
+  }catch(e){
+    console.log(e);
+  }
+}
 
 const buttons = [
   ['1', '2', '3', 'C'],
@@ -26,13 +55,20 @@ export default class App extends Component {
     this.state = {
       _keyPress : 'mot hai ba',
     }
-    this._handleEvent = this._handleEvent.bind(this);
+    /*this._handleBtnUp = this._handleBtnUp.bind(this);
+    this._handleBtnDown = this._handleBtnDown.bind(this);*/
   }
 
-  _handleEvent = (value) => {
-    this.setState({
-      _keyPress: value
-    });
+  componentDidMount(){
+    loadROM(this, "TANK");
+  }
+
+  _handleBtnUp = (value) => {
+    pressBtn(this, value, false)
+  }
+
+  _handleBtnDown = (value) => {
+    pressBtn(this, value, true)
   }
 
   render() {
@@ -42,7 +78,10 @@ export default class App extends Component {
           <Text style={styles.txtDefault}>{this.state._keyPress}</Text>
         </View>
         <View style={styles.contKeyboard}>
-          <KeyboardView onBtnPress={this._handleEvent} buttons={buttons} />
+          <KeyboardView 
+            onBtnPressUp={this._handleBtnUp}
+            onBtnPressDown={this._handleBtnDown}
+            buttons={buttons} />
         </View>
       </View>
     );
