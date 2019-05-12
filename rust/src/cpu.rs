@@ -23,20 +23,21 @@ const MEMORY_SIZE: usize = 4096;
 const NO_REGISTERS: usize = 16;
 
 pub struct CPU{
-    pub memory: [u8; MEMORY_SIZE],
-    pub registers: [u8; NO_REGISTERS],
-    pub keyboard: Keyboard,
-    pub display: Display,
-    pub pc: u16,
-    pub ir: u16, //index register,
-    pub stacks: [u16; 16], //Why stack 16bits? Because it need enough space to save memory addresses.
-    pub sp: u8, //stack pointer
-    pub delay_timer: u8,
+    memory: [u8; MEMORY_SIZE],
+    registers: [u8; NO_REGISTERS],
+    keyboard: Keyboard,
+    display: Display,
+    pc: u16,
+    ir: u16, //index register,
+    stacks: [u16; 16], //Why stack 16bits? Because it need enough space to save memory addresses.
+    sp: u8, //stack pointer
+    delay_timer: u8,
     //Skip timer for now, I will be back later.
+    re_draw: bool, //Using this field to check do Fe need to re-render or not?
 }
 
 impl CPU{
-    /*pub fn new() -> Self{
+    pub fn new() -> Self{
         CPU{
             memory: [0; MEMORY_SIZE],
             registers: [0; NO_REGISTERS],
@@ -47,8 +48,9 @@ impl CPU{
             stacks: [0; 16],
             sp: 0, //stack pointer
             delay_timer: 0,
+            re_draw: false,
         }
-    }*/
+    }
 
     pub fn reset(&mut self){
         self.memory = [0; MEMORY_SIZE];
@@ -60,6 +62,15 @@ impl CPU{
         self.sp = 0;
         self.delay_timer = 0;
         self.memory[0..80].clone_from_slice(&FONT_SET);
+        self.re_draw = false;
+    }
+    
+    pub fn press_key(&mut self, idx: usize, is_down: bool) {
+        if is_down {
+            self.keyboard.press_down(idx)
+        } else {
+            self.keyboard.press_up(idx)
+        }
     }
 
     pub fn load_rom(&mut self, input : Vec<u8>){
@@ -69,6 +80,7 @@ impl CPU{
             }
         }
         write_log(&format!("MEM: {:#x} {:#x} {:#x} {:#x} ", self.memory[512], self.memory[513], self.memory[514], self.memory[515]));
+        self.pc = 512; //jump to correct memory location
     }
 
     //Fetch instruction phase
@@ -88,6 +100,7 @@ impl CPU{
     pub fn execute_cycle(&mut self) {
         let fetch_addr = self.pc;
         let opcode: u16 = self.read_instruction(fetch_addr);
+        write_log(&format!("From PC {:#X} feed Opcode: {:#X}" , self.pc, opcode));
         self.execute_ops(opcode);
     }
 
@@ -108,6 +121,7 @@ impl CPU{
         let nnn = (opcode) & 0x0FFF;
         
         self.pc += 2; //execute means increasing program counter
+        self.re_draw = false; //Hasn't been determined yet.
 
         match (op, x, y, n){
             //Don't need to implement SYS (dead)
@@ -216,6 +230,7 @@ impl CPU{
             },
             //DRW Vx, Vy, nibble
             (0xD, _, _, _) => {
+                self.re_draw = true;
                 let sprites = &self.memory[self.ir as usize..(self.ir + n as u16) as usize];
                 self.registers[0xF] = if self.display.draw(self.registers[x] as usize, self.registers[y] as usize, sprites) {
                     1

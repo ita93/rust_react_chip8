@@ -22,27 +22,18 @@ use cpu::CPU;
 use display::Display;
 use keyboard::Keyboard;
 
-//FIX_ME: cannot call function here
-static mut Cpu: CPU = CPU{
-            memory: [0; 4096],
-            registers: [0; 16],
-            keyboard: Keyboard{
-                keys: [false; 16],
-            },
-            display: Display{
-                memory: [false; 2048],
-            },
-            pc: 0,
-            ir: 0, //index register,
-            stacks: [0; 16],
-            sp: 0, //stack pointer
-            delay_timer: 0,
-        };
-
+static mut GAME_CPU: Option<CPU> = None;
 
 unsafe fn jstring_to_str<'a>(env: *mut JNIEnv, j_recipient: jstring) -> &'a str{
     let input = ((*(*env).functions).GetStringUTFChars)(env, j_recipient, std::ptr::null_mut());
     CStr::from_ptr(input).to_str().unwrap_or("0")
+}
+
+#[no_mangle]
+pub unsafe extern fn Java_com_rust_1react_1chip8_MobileAppBridge_initCpu(env: *const JNIEnv, _ : jobject) -> jboolean {
+    GAME_CPU = Some(CPU::new());
+    GAME_CPU.get_or_insert(CPU::new()).reset();
+    1 //always return true
 }
 
 #[no_mangle]
@@ -68,7 +59,7 @@ pub unsafe extern fn Java_com_rust_1react_1chip8_MobileAppBridge_loadROM(env: *m
     } else {
         return match load_asset(rom_name, res) {
             Ok(value) => {
-                Cpu.load_rom(value);
+                GAME_CPU.get_or_insert(CPU::new()).load_rom(value);
                 1
             },
             _ => {
@@ -84,14 +75,21 @@ pub unsafe extern fn Java_com_rust_1react_1chip8_MobileAppBridge_pressButton(env
     let key_idx = usize::from_str_radix(converted_string, 16).unwrap_or(0);
     
     if j_value == 1 {
-        Cpu.keyboard.press_down(key_idx);
+        GAME_CPU.get_or_insert(CPU::new()).press_key(key_idx, true);
     }else{
-        Cpu.keyboard.press_up(key_idx);
+        GAME_CPU.get_or_insert(CPU::new()).press_key(key_idx, false);
     }
 
-    write_log(&format!("Key: {} and value: {}", key_idx, Cpu.keyboard.keys[key_idx]));
+    write_log(&format!("Key: {} and value: {}", key_idx, j_value));
 }
 
+#[no_mangle]
+pub unsafe extern fn Java_com_rust_1react_1chip8_MobileAppBridge_excuteCycle(env: *mut JNIEnv, _ : JObject, j_key: jstring) -> jboolean{
+    GAME_CPU.get_or_insert(CPU::new()).execute_cycle();
+    1 //FIX ME: return true when this is a Draw instruction, otherwise return 0.
+}
+
+/*
 #[no_mangle]
 pub fn reset() {
     unsafe {
@@ -134,12 +132,7 @@ pub fn get_register_pc() -> u16 {
     }
 }
 
-#[no_mangle]
-pub fn execute_cycle() {
-    unsafe {
-        Cpu.execute_cycle();
-    }
-}
+
 
 #[no_mangle]
 pub fn decrement_timers() {
@@ -147,3 +140,4 @@ pub fn decrement_timers() {
         Cpu.delay_desc();
     }
 }
+*/
