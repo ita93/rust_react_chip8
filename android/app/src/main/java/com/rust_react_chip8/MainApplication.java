@@ -3,7 +3,8 @@ package com.rust_react_chip8;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
-import com.pilloxa.backgroundjob.BackgroundJobPackage;
+import com.horcrux.svg.SvgPackage;
+import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
@@ -24,7 +25,9 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-            new BackgroundJobPackage(), new MobileAppPackage()
+            new SvgPackage(),
+            new RNCWebViewPackage(),
+            new MobileAppPackage()
       );
     }
 
