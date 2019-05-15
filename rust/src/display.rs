@@ -6,11 +6,15 @@ pub struct Display{
     pub memory: [bool; HEIGH_SIZE * WIDTH_SIZE],
 }
 
-impl Display {
+impl <'a>Display {
     pub fn new() -> Self{
         Self{
             memory: [false; HEIGH_SIZE * WIDTH_SIZE],
         }
+    }
+
+    pub fn get_mem(&'a self) -> &'a [bool; 2048]{
+        &self.memory
     }
 
     fn get_pixel(&self, x: usize, y: usize) -> Option<bool> {

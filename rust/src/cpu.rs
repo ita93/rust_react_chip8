@@ -16,8 +16,7 @@ use rand::Rng;
 use keyboard::Keyboard;
 use display::Display;
 use font::FONT_SET;
-use std::io;
-use android_ffi::write_log;
+//use android_ffi::write_log; 
 
 const MEMORY_SIZE: usize = 4096;
 const NO_REGISTERS: usize = 16;
@@ -73,13 +72,20 @@ impl CPU{
         }
     }
 
+    pub fn get_re_draw(&mut self) -> bool {
+        self.re_draw
+    }
+
+    pub fn get_display(&mut self) -> &Display{
+        &self.display
+    }
+
     pub fn load_rom(&mut self, input : Vec<u8>){
         for i in 0..input.len() {
             if i < 3584 {
                 self.memory[i+512] = input[i];
             }
         }
-        write_log(&format!("MEM: {:#x} {:#x} {:#x} {:#x} ", self.memory[512], self.memory[513], self.memory[514], self.memory[515]));
         self.pc = 512; //jump to correct memory location
     }
 
@@ -100,7 +106,7 @@ impl CPU{
     pub fn execute_cycle(&mut self) {
         let fetch_addr = self.pc;
         let opcode: u16 = self.read_instruction(fetch_addr);
-        write_log(&format!("From PC {:#X} feed Opcode: {:#X}" , self.pc, opcode));
+        //write_log(&format!("From PC {:#X} feed Opcode: {:#X}" , self.pc, opcode));
         self.execute_ops(opcode);
     }
 
@@ -126,66 +132,66 @@ impl CPU{
         match (op, x, y, n){
             //Don't need to implement SYS (dead)
             //CLS
-            (0, 0, 0xE, 0) => self.display.cls(),
+            (0x0, 0x0, 0xE, 0x0) => self.display.cls(),
             //RET
-            (0, 0, 0xE, 0xE) => {
+            (0x0, 0x0, 0xE, 0xE) => {
                 self.sp -= 1;
                 self.pc = self.stacks[self.sp as usize];
             },
             //JP addr
-            (1, _, _, _) => {
+            (0x1, _, _, _) => {
                 self.pc = nnn;
             },
             //CALL addr
-            (2, _, _, _) => {
+            (0x2, _, _, _) => {
                 self.sp += 1;
                 self.stacks[self.sp as usize - 1] = self.pc;
                 self.pc = nnn;
             },
             //SE Vx, byte
-            (3, _, _, _) => {
+            (0x3, _, _, _) => {
                 self.pc += if self.registers[x] == kk {2} else {0};
             },
             //SNE Vx, byte
-            (4, _, _, _) => {
+            (0x4, _, _, _) => {
                 self.pc += if self.registers[x] != kk {2} else {0};
             },
             //SE Vx, Vy
-            (5, _, _, _) => {
+            (0x5, _, _, _) => {
                 self.pc += if self.registers[x] == self.registers[y] {2} else {0};
             }
             //LD Vx, byte
-            (6, _, _, _) => {
+            (0x6, _, _, _) => {
                 self.registers[x] = kk;
             }
             //ADD Vx, byte
-            (7, _, _, _) => {
+            (0x7, _, _, _) => {
                 self.registers[x] += kk;
             },
             //LD Vx, Vy
-            (8, _, _, 0) => {
+            (0x8, _, _, 0x0) => {
                 self.registers[x] = self.registers[y];
             },
             //OR Vx, Vy
-            (8, _, _, 1) => {
+            (0x8, _, _, 0x1) => {
                 self.registers[x] |= self.registers[y];
             },
             // AND Vx, Vy
-            (8, _, _, 2) => {
+            (0x8, _, _, 0x2) => {
                 self.registers[x] &= self.registers[y];
             },
             //XOR Vx, Vy
-            (8, _, _, 3) => {
+            (0x8, _, _, 0x3) => {
                 self.registers[x] ^= self.registers[y];
             },
             //ADD Vx, Vy
-            (8, _, _, 4) => {
+            (0x8, _, _, 0x4) => {
                 let sum:u16 = self.registers[x] as u16 + self.registers[y] as u16;
                 self.registers[x] = (sum & 0x00FF) as u8;
                 self.registers[0xF] = if sum > 255 {1} else {0};
             },
             //SUB Vx, Vy
-            (8, _, _, 5) => {
+            (0x8, _, _, 0x5) => {
                 let r1 = self.registers[x];
                 let r2 = self.registers[y];
                 self.registers[0xF] = if r1 > r2 {1} else {0};
@@ -193,23 +199,23 @@ impl CPU{
                 self.registers[x] = (sub_res & 0x00FF) as u8;
             },
             //SHR Vx {, Vy}
-            (8, _, _, 6) => {
+            (0x8, _, _, 0x6) => {
                 self.registers[0xF] = self.registers[x] & 0x01;
                 self.registers[x] = self.registers[x] >> 1;
             },
             //SUBN Vx, Vy
-            (8, _, _, 7) => {
+            (0x8, _, _, 0x7) => {
                 let res = self.registers[y] as i8 - self.registers[x] as i8;
                 self.registers[x] = res as u8;
                 self.registers[0xF] = if res < 0 { 1 } else { 0 };
             },
             //SHL Vx {, Vy}
-            (8, _, _, 0xE) => {
+            (0x8, _, _, 0xE) => {
                 self.registers[0xF] = self.registers[x] & 0x10;
                 self.registers[x] = self.registers[x] << 1;
             },
             //SNE Vx, Vy
-            (9, _, _, 0) => {
+            (0x9, _, _, 0x0) => {
                 self.pc += if self.registers[x] != self.registers[y] {2} else {0}
             },
             //LD I, addr
@@ -239,57 +245,59 @@ impl CPU{
                 };
             },
             //SKP Vx
-            (0xE, _, 9, 0xE) => {
+            (0xE, _, 0x9, 0xE) => {
                 self.pc += if self.keyboard.is_key_down(x as usize) {2} else {0};
             },
             //SKNP Vx
-            (0xE, _, 0xA, 1) => {
+            (0xE, _, 0xA, 0x1) => {
                 self.pc += if !self.keyboard.is_key_down(x as usize) {2} else {0};
             },
             //LD Vx, DT
-            (0xF, _, 0, 7) => {
+            (0xF, _, 0x0, 0x7) => {
                 self.registers[x] = self.delay_timer;
             },
             //LD Vx, K 
-            (0xF, _, 0, 0xA) => {
+            (0xF, _, 0x0, 0xA) => {
+                
                 //Wait till K pressed, then store value key in REG X.
+                self.pc -= 2;
                 for i in 0..16 {
                     if self.keyboard.is_key_down(i) {
-                        self.registers[x] = 1;
-                        break;
+                        self.registers[x] = i as u8;
+                        self.pc +=2;
                     }
                 }
             },
             //LD DT, Vx 
-            (0xF, _, 1, 5) => {
+            (0xF, _, 0x1, 0x5) => {
                 self.delay_timer = self.registers[x];
             },
             //LD ST, Vx
-            (0xF, _, 1, 8) => {
+            (0xF, _, 0x1, 0x8) => {
                 //ignore it for now.
             },
             //ADD I, Vx
-            (0xF, _, 1, 0xE) => {
+            (0xF, _, 0x1, 0xE) => {
                 self.ir += self.registers[x] as u16;
             },
             //LD F, Vx 
-            (0xF, _, 2, 9) => {
+            (0xF, _, 0x2, 0x9) => {
                 self.ir = self.registers[x] as u16 * 5;
             },
             //LD B, Vx
-            (0xF, _, 3, 3) => {
+            (0xF, _, 0x3, 0x3) => {
                 self.memory[self.ir as usize] = self.registers[x] / 100;
                 self.memory[self.ir as usize + 1] = (self.registers[x] / 10) % 10;
                 self.memory[self.ir as usize + 2] = (self.registers[x] % 100) % 10;
             },
             //LD [I], Vx
             //[I] means value that stored at addr I.
-            (0xF, _, 5, 5) => {
+            (0xF, _, 0x5, 0x5) => {
                 self.memory[self.ir as usize..=(self.ir as usize + x)]
                     .copy_from_slice(&self.registers[0..=x]);
             },
             //LD Vx, [I]
-            (0xF, _, 6, 5) => {
+            (0xF, _, 0x6, 0x5) => {
                 self.registers[0..=x].
                     copy_from_slice(&self.memory[self.ir as usize..=(self.ir as usize + x)]);
             }
