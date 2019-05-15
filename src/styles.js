@@ -9,7 +9,7 @@ export default {
 
     contDisplay: {
         flex: 0.5,
-        backgroundColor: 'red'
+        backgroundColor: 'black'
     },
 
     contKeyboard: {
