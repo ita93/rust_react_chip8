@@ -8,10 +8,13 @@ CHIP-8 was mainly used as a gaming platform, and today you can play lots of game
 
 ### References
 [Cowgod's Chip-8 Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
+
 [How to write an emulator](http://www.multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/)
 
 [Building and Deploying a Rust library on Android](https://mozilla.github.io/firefox-browser-architecture/experiments/2017-09-21-rust-on-android.html)
+
 [Android NDK reference](https://developer.android.com/ndk/reference)
+
 [Rust FFI](https://doc.rust-lang.org/nomicon/ffi.html)
 
 ### Dependencies
