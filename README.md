@@ -30,8 +30,8 @@ $ rustup target add aarch64-linux-android
 $ rustup target add x86_64-linux-android
 ```
 ### Building
- - Installing NPM dependencies: npm install
- - Creating stand alone NDK: $./create-ndk-standalone.sh
- - Compiling Rust libs and copy them to jniLibs: ./auto_build.sh
- - Run: $react-native run-android (remember to start react-native server before using this command).
+ - Installing NPM dependencies: `npm install`
+ - Creating stand alone NDK: `$./create-ndk-standalone.sh`
+ - Compiling Rust libs and copy them to jniLibs: `./auto_build.sh`
+ - Run: `$react-native run-android` (remember to start react-native server before using this command).
 
