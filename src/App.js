@@ -7,7 +7,7 @@
  */
 
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Picker, View } from 'react-native';
 import styles from './styles';
 import { MobileAppBridge } from 'NativeModules';
 
@@ -42,7 +42,6 @@ async function displayHelloWorld(self, value) {
 async function loadROM(self, value) {
   try {
     let text = await MobileAppBridge.rnLoadROM(value);
-    console.log(value);
   } catch (e) {
     console.log(e);
   }
@@ -50,7 +49,7 @@ async function loadROM(self, value) {
 
 async function pressBtn(self, key, value) {
   try {
-    let res =  MobileAppBridge.rnPressBtn(key, value);
+    let res = MobileAppBridge.rnPressBtn(key, value);
   } catch (e) {
     console.log(e);
   }
@@ -98,17 +97,18 @@ export default class App extends Component {
     this.state = {
       _keyPress: '0',
       _screen: screen,
+      game: "TANK",
     }
     helper = this;
   }
 
   componentDidMount() {
-    DeviceEventEmitter.addListener('onReDraw', function (e){
+    DeviceEventEmitter.addListener('onReDraw', function (e) {
       //getDisplay(helper);
     });
     requestAnimationFrame(displayLoop);
     initCpu(this);
-    loadROM(this, "TANK");
+    loadROM(this, this.state.game);
     MobileAppBridge.rnExecute();
   }
 
@@ -126,6 +126,41 @@ export default class App extends Component {
         <View style={styles.contDisplay}>
           <GameCanvas screen={this.state._screen} />
         </View>
+        <Picker
+          selectedValue={this.state.game}
+          style={styles.selectBox}
+          onValueChange={(itemValue, itemIndex) => {
+            this.setState({
+              _screen: screen,
+              game: itemValue
+            });
+            loadROM(this, itemValue);
+          }
+          }>
+          <Picker.Item label="TANK" value="TANK" />
+          <Picker.Item label="15PUZZLE" value="15PUZZLE" />
+          <Picker.Item label="BLINKY" value="BLINKY" />
+          <Picker.Item label="BLITZ" value="BLITZ" />
+          <Picker.Item label="BRIX" value="BRIX" />
+          <Picker.Item label="CONNECT4" value="CONNECT4" />
+          <Picker.Item label="GUESS" value="GUESS" />
+          <Picker.Item label="HIDDEN" value="HIDDEN" />
+          <Picker.Item label="IBM" value="IBM" />
+          <Picker.Item label="INVADERS" value="INVADERS" />
+          <Picker.Item label="KALEID" value="KALEID" />
+          <Picker.Item label="MAZE" value="MAZE" />
+          <Picker.Item label="MERLIN" value="MERLIN" />
+          <Picker.Item label="MISSILE" value="MISSILE" />
+          <Picker.Item label="PONG" value="PONG" />
+          <Picker.Item label="PONG2" value="PONG2" />
+          <Picker.Item label="SYZYGY" value="SYZYGY" />
+          <Picker.Item label="TETRIS" value="TETRIS" />
+          <Picker.Item label="TICTAC" value="TICTAC" />
+          <Picker.Item label="UFO" value="UFO" />
+          <Picker.Item label="VBRIX" value="VBRIX" />
+          <Picker.Item label="VERS" value="VERS" />
+          <Picker.Item label="WIPEOFF" value="WIPEOFF" />
+        </Picker>
         <View style={styles.contKeyboard}>
           <KeyboardView
             onBtnPressUp={this._handleBtnUp}

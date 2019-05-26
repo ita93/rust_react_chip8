@@ -8,8 +8,13 @@ export default {
     },
 
     contDisplay: {
-        flex: 0.5,
+        flex: 0.45,
         backgroundColor: 'black'
+    },
+
+    selectBox: {
+        flex: 0.05,
+        backgroundColor: 'white'
     },
 
     contKeyboard: {

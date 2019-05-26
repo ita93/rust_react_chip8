@@ -28,8 +28,7 @@ const { Circle, Rect } = Svg;
 */
 
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Dimensions } from "react-native";
+import { Dimensions, View, StyleSheet } from 'react-native';
 
 export default class GameCanvas extends React.Component {
   shouldComponentUpdate(nextProps, nextState) {
@@ -49,18 +48,19 @@ export default class GameCanvas extends React.Component {
   }
 
   render() {
-    
+
 
     //let dpath="M 6 0 L 0 0 0 6 6 6 6 0";
     return (
       <View
         style={[
           StyleSheet.absoluteFill,
-          { alignItems: 'center', justifyContent: 'center', backgroundColor:'red' },
+          { alignItems: 'center', justifyContent: 'center' },
         ]}>
         <Svg
           height="100%"
           width="100%"
+          style={{backgroundColor: 'black'}}
         >
           <Defs>
             <G id="shape">

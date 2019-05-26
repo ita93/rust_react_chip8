@@ -81,6 +81,14 @@ impl CPU{
     }
 
     pub fn load_rom(&mut self, input : Vec<u8>){
+        self.reset();
+        //Reset screen
+        use std::{thread, time};
+
+        let one_sec = time::Duration::from_secs(1);
+
+        thread::sleep(one_sec);
+        //It should be done here.
         for i in 0..input.len() {
             if i < 3584 {
                 self.memory[i+512] = input[i];
@@ -247,10 +255,12 @@ impl CPU{
             //SKP Vx
             (0xE, _, 0x9, 0xE) => {
                 self.pc += if self.keyboard.is_key_down(x as usize) {2} else {0};
+                self.keyboard.press_up(x as usize);
             },
             //SKNP Vx
             (0xE, _, 0xA, 0x1) => {
                 self.pc += if !self.keyboard.is_key_down(x as usize) {2} else {0};
+                self.keyboard.press_up(x as usize);
             },
             //LD Vx, DT
             (0xF, _, 0x0, 0x7) => {
@@ -265,6 +275,8 @@ impl CPU{
                     if self.keyboard.is_key_down(i) {
                         self.registers[x] = i as u8;
                         self.pc +=2;
+                        //set k as unpressed
+                        self.keyboard.press_up(i);
                     }
                 }
             },

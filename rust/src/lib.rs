@@ -73,7 +73,7 @@ pub unsafe extern fn Java_com_rust_1react_1chip8_MobileAppBridge_pressButton(env
     if let Some(ref mut cpu ) = GAME_CPU{
         match j_value {
             1 => cpu.press_key(key_idx, true),
-            _ => cpu.press_key(key_idx, false),
+            _ => {/*Do nothing*/},
         }
     }
 }
